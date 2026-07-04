@@ -1,0 +1,179 @@
+/* ─── CALENDÁRIO ─────────────────────────────────────────────────────────────── */
+
+.calendario-wrapper {
+  margin-bottom: 28px;
+}
+
+.calendario-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.data-display {
+  background: var(--surface2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 14px;
+  transition: all 0.2s;
+}
+
+.data-display.ativa {
+  color: var(--gold);
+  border-color: rgba(250,204,21,0.3);
+  background: rgba(250,204,21,0.05);
+  font-weight: 600;
+}
+
+.calendario {
+  background: var(--surface2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.calendario-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.calendario-nav button {
+  background: var(--surface3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: white;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.calendario-nav button:hover {
+  background: var(--gold);
+  color: black;
+  border-color: var(--gold);
+}
+
+#calendarioTitulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: white;
+}
+
+.calendario-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 12px;
+}
+
+.cal-header-day {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 6px 0;
+}
+
+.cal-header-day:first-child {
+  color: #ef4444;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.cal-day.vazio { background: transparent; }
+
+.cal-day.passado {
+  color: rgba(255,255,255,0.15);
+  cursor: not-allowed;
+}
+
+.cal-day.bloqueado {
+  color: rgba(255,255,255,0.2);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.cal-day.bloqueado::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 6px;
+  background: rgba(239,68,68,0.08);
+}
+
+.cal-day.disponivel {
+  cursor: pointer;
+  color: var(--text);
+}
+
+.cal-day.disponivel:hover {
+  background: rgba(250,204,21,0.15);
+  color: var(--gold);
+  transform: scale(1.1);
+}
+
+.cal-day.selecionado {
+  background: var(--gold) !important;
+  color: black !important;
+  font-weight: 700;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(250,204,21,0.4);
+}
+
+/* Legenda */
+.cal-legenda {
+  display: flex;
+  gap: 16px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-wrap: wrap;
+}
+
+.cal-legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cal-legenda-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.cal-legenda-dot.disponivel-dot { background: var(--surface3); border: 1px solid rgba(255,255,255,0.15); }
+.cal-legenda-dot.selecionado-dot { background: var(--gold); }
+.cal-legenda-dot.bloqueado-dot { background: rgba(239,68,68,0.3); }
+.cal-legenda-dot.passado-dot { background: rgba(255,255,255,0.1); }

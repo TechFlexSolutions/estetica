@@ -186,6 +186,7 @@ nav a.active { color: var(--gold); }
   color: var(--text-muted);
 }
 
+
 /* ── FORM CARD ── */
 .right-panel {
   animation: fadeUp 0.6s 0.15s ease both;

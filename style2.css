@@ -24,6 +24,7 @@ body {
 
 /* ── HEADER ───────────────────────────────────────────────── */
 #header {
+  background-color: black;
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
@@ -190,10 +191,9 @@ nav a.nav-cta:hover {
 .banner {
   position: relative;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  display: grid;
+  place-items: center;
+  
 }
 
 .banner-bg {
@@ -234,6 +234,7 @@ nav a.nav-cta:hover {
   max-width: 800px;
   padding: 0 24px;
   animation: fadeUp 0.8s ease both;
+  margin: auto;
 }
 
 .banner-tag {
@@ -352,25 +353,6 @@ nav a.nav-cta:hover {
   width: 1px;
   height: 40px;
   background: rgba(255,255,255,0.15);
-}
-
-.banner-scroll {
-  position: absolute;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.banner-scroll span {
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
-  text-transform: uppercase;
 }
 
 .scroll-line {
@@ -644,7 +626,8 @@ nav a.nav-cta:hover {
   gap: 80px;
   max-width: 1280px;
   margin: 0 auto;
-  align-items: center;
+  align-items: end;
+
 }
 
 .contato-info h2 { margin-bottom: 16px; }

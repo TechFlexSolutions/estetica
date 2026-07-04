@@ -1,21 +1,21 @@
 const express = require("express");
-const mysql = require("mysql2/promise");
 const cors = require("cors");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ─── CONFIGURAÇÃO DO BANCO ───────────────────────────────────────────────────
-const dbConfig = {
-  host: "localhost",
-  port: 3306,
-  user: "root",
-  password: "123456GV",
-  database: "agendamentos_db",
+// ─── CONFIGURAÇÃO SUPABASE ────────────────────────────────────────────────────
+const SUPABASE_URL = "https://cueyxhvsbovesfoeeetl.supabase.co/rest/v1";
+const SUPABASE_KEY = "sb_publishable_1bNkXwZZ3172CRv60urGxQ_4dxXUCvW";
+
+const headers = {
+  "Content-Type": "application/json",
+  "apikey": SUPABASE_KEY,
+  "Authorization": `Bearer ${SUPABASE_KEY}`,
 };
 
-// ─── ROTA: SALVAR AGENDAMENTO ────────────────────────────────────────────────
+// ─── ROTA: SALVAR AGENDAMENTO ─────────────────────────────────────────────────
 app.post("/api/agendamentos", async (req, res) => {
   const { nome, telefone, tipoVeiculo, nomeVeiculo, lavagem, data, horario } = req.body;
 
@@ -24,27 +24,37 @@ app.post("/api/agendamentos", async (req, res) => {
   }
 
   try {
-    const conn = await mysql.createConnection(dbConfig);
+    const response = await fetch(`${SUPABASE_URL}/agendamentos`, {
+      method: "POST",
+      headers: { ...headers, "Prefer": "return=representation" },
+      body: JSON.stringify({
+        nome,
+        telefone,
+        tipo_veiculo: tipoVeiculo,
+        nome_veiculo: nomeVeiculo,
+        lavagem,
+        data_agendamento: data,
+        horario,
+      }),
+    });
 
-    const [result] = await conn.execute(
-      `INSERT INTO agendamentos 
-        (nome, telefone, tipo_veiculo, nome_veiculo, lavagem, data_agendamento, horario, criado_em)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [nome, telefone, tipoVeiculo, nomeVeiculo, lavagem, data, horario]
-    );
+    const result = await response.json();
 
-    await conn.end();
+    if (!response.ok) {
+      console.error("Erro Supabase:", result);
+      return res.status(500).json({ erro: "Erro ao salvar agendamento." });
+    }
 
-    console.log("Agendamento salvo. ID:", result.insertId);
-    res.status(201).json({ mensagem: "Agendamento realizado com sucesso!", id: result.insertId });
+    console.log("Agendamento salvo. ID:", result[0].id);
+    res.status(201).json({ mensagem: "Agendamento realizado com sucesso!", id: result[0].id });
 
   } catch (erro) {
-    console.error("Erro MySQL:", erro);
+    console.error("Erro:", erro);
     res.status(500).json({ erro: "Erro ao salvar no banco de dados." });
   }
 });
 
-// ─── ROTA: HORÁRIOS OCUPADOS POR DATA ────────────────────────────────────────
+// ─── ROTA: HORÁRIOS OCUPADOS POR DATA ─────────────────────────────────────────
 app.get("/api/horarios-ocupados", async (req, res) => {
   const { data } = req.query;
 
@@ -53,32 +63,44 @@ app.get("/api/horarios-ocupados", async (req, res) => {
   }
 
   try {
-    const conn = await mysql.createConnection(dbConfig);
-    const [rows] = await conn.execute(
-      "SELECT horario FROM agendamentos WHERE data_agendamento = ?",
-      [data]
+    const response = await fetch(
+      `${SUPABASE_URL}/agendamentos?select=horario&data_agendamento=eq.${data}`,
+      { headers }
     );
-    await conn.end();
 
-    const horariosOcupados = rows.map((r) => r.horario.trim());
+    const result = await response.json();
+
+    if (!response.ok) {
+      return res.status(500).json({ erro: "Erro ao buscar horários." });
+    }
+
+    const horariosOcupados = result.map((r) => r.horario.trim());
     res.json(horariosOcupados);
+
   } catch (erro) {
-    console.error("Erro MySQL:", erro);
+    console.error("Erro:", erro);
     res.status(500).json({ erro: "Erro ao buscar horários." });
   }
 });
 
-// ─── ROTA: LISTAR AGENDAMENTOS ───────────────────────────────────────────────
+// ─── ROTA: LISTAR AGENDAMENTOS ────────────────────────────────────────────────
 app.get("/api/agendamentos", async (req, res) => {
   try {
-    const conn = await mysql.createConnection(dbConfig);
-    const [rows] = await conn.execute(
-      "SELECT * FROM agendamentos ORDER BY data_agendamento DESC, horario ASC"
+    const response = await fetch(
+      `${SUPABASE_URL}/agendamentos?order=data_agendamento.desc,horario.asc`,
+      { headers }
     );
-    await conn.end();
-    res.json(rows);
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return res.status(500).json({ erro: "Erro ao buscar agendamentos." });
+    }
+
+    res.json(result);
+
   } catch (erro) {
-    console.error("Erro MySQL:", erro);
+    console.error("Erro:", erro);
     res.status(500).json({ erro: "Erro ao buscar agendamentos." });
   }
 });

@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     el.addEventListener("input", updateSteps);
     el.addEventListener("change", updateSteps);
   });
+  
 
   // ── HORÁRIOS OCUPADOS ────────────────────────────────────────────────────
   async function atualizarHorarios(data) {
@@ -123,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const data        = dataInput.value;
 
     const msg = `Olá! Gostaria de agendar:%0A%0A👤 *${nome || "—"}*%0A📞 ${telefone || "—"}%0A🚗 ${tipoVeiculo || "—"} — ${nomeVeiculo || "—"}%0A🧼 ${lavagem || "—"}%0A📅 ${data || "—"} às ${horarioSelecionado || "—"}`;
-    window.open(`https://wa.me/5531999999999?text=${msg}`, "_blank");
+    window.open(`https://wa.me/5531992171465?text=${msg}`, "_blank");
   });
 
   // ── ENVIAR FORMULÁRIO ────────────────────────────────────────────────────
@@ -172,5 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSubmit.classList.remove("loading");
     }
   });
+  
 
 });
