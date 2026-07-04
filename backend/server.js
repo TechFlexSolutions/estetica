@@ -1,112 +1,176 @@
-const express = require("express");
-const cors = require("cors");
+const API_URL = "https://estetica-g9mn.onrender.com/api";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+document.addEventListener("DOMContentLoaded", () => {
 
-// ─── CONFIGURAÇÃO SUPABASE ────────────────────────────────────────────────────
-const SUPABASE_URL = "https://cueyxhvsbovesfoeeetl.supabase.co/rest/v1";
-const SUPABASE_KEY = "sb_publishable_1bNkXwZZ3172CRv60urGxQ_4dxXUCvW";
+  const formulario = document.getElementById("agendamentoForm");
+  const horarios   = document.querySelectorAll(".horario");
+  const dataInput  = document.getElementById("dataAgendamento");
+  const btnSubmit  = document.getElementById("btnSubmit");
 
-const headers = {
-  "Content-Type": "application/json",
-  "apikey": SUPABASE_KEY,
-  "Authorization": `Bearer ${SUPABASE_KEY}`,
-};
+  // Data mínima = hoje
+  dataInput.min = new Date().toISOString().split("T")[0];
 
-// ─── ROTA: SALVAR AGENDAMENTO ─────────────────────────────────────────────────
-app.post("/api/agendamentos", async (req, res) => {
-  const { nome, telefone, tipoVeiculo, nomeVeiculo, lavagem, data, horario } = req.body;
+  let horarioSelecionado = "";
 
-  if (!nome || !telefone || !data || !horario) {
-    return res.status(400).json({ erro: "Campos obrigatórios faltando." });
+  // ── TOAST ────────────────────────────────────────────────────────────────
+  function showToast(msg, type = "success") {
+    const toast     = document.getElementById("toast");
+    const toastMsg  = document.getElementById("toastMsg");
+    const toastIcon = document.getElementById("toastIcon");
+    toast.className = `toast ${type} show`;
+    toastIcon.textContent = type === "success" ? "✅" : "❌";
+    toastMsg.textContent  = msg;
+    setTimeout(() => toast.classList.remove("show"), 3500);
   }
 
-  try {
-    const response = await fetch(`${SUPABASE_URL}/agendamentos`, {
-      method: "POST",
-      headers: { ...headers, "Prefer": "return=representation" },
-      body: JSON.stringify({
-        nome,
-        telefone,
-        tipo_veiculo: tipoVeiculo,
-        nome_veiculo: nomeVeiculo,
-        lavagem,
-        data_agendamento: data,
-        horario,
-      }),
+  // ── INDICADOR DE STEPS ───────────────────────────────────────────────────
+  function updateSteps() {
+    const nome        = document.getElementById("nome").value;
+    const telefone    = document.getElementById("telefone").value;
+    const tipoVeiculo = document.getElementById("tipoVeiculo").value;
+    const nomeVeiculo = document.getElementById("nomeVeiculo").value;
+    const lavagem     = document.getElementById("lavagem").value;
+    const data        = dataInput.value;
+
+    const s1 = document.getElementById("step1");
+    const s2 = document.getElementById("step2");
+    const s3 = document.getElementById("step3");
+
+    if (nome && telefone) {
+      s1.className = "step done";
+      s2.className = "step active";
+    } else {
+      s1.className = "step active";
+      s2.className = "step";
+    }
+
+    if (tipoVeiculo && nomeVeiculo && lavagem) {
+      s2.className = "step done";
+      s3.className = "step active";
+    }
+
+    if (data && horarioSelecionado) {
+      s3.className = "step done";
+    }
+  }
+
+  document.querySelectorAll("input, select").forEach((el) => {
+    el.addEventListener("input", updateSteps);
+    el.addEventListener("change", updateSteps);
+  });
+
+  // ── HORÁRIOS OCUPADOS ────────────────────────────────────────────────────
+  async function atualizarHorarios(data) {
+    if (!data) return;
+    try {
+      const resp    = await fetch(`${API_URL}/horarios-ocupados?data=${data}`);
+      const ocupados = await resp.json();
+
+      horarios.forEach((btn) => {
+        const horario = btn.innerText.trim();
+        if (ocupados.includes(horario)) {
+          btn.classList.add("ocupado");
+          btn.classList.remove("selecionado");
+          btn.disabled = true;
+        } else {
+          btn.classList.remove("ocupado");
+          btn.disabled = false;
+        }
+      });
+
+      if (ocupados.includes(horarioSelecionado)) {
+        horarioSelecionado = "";
+      }
+    } catch (erro) {
+      console.error("Erro ao buscar horários:", erro);
+    }
+  }
+
+  dataInput.addEventListener("change", () => {
+    horarioSelecionado = "";
+    horarios.forEach((btn) => btn.classList.remove("selecionado"));
+    atualizarHorarios(dataInput.value);
+    updateSteps();
+  });
+
+  // ── SELECIONAR HORÁRIO ───────────────────────────────────────────────────
+  horarios.forEach((horario) => {
+    horario.addEventListener("click", () => {
+      if (horario.disabled) return;
+      horarios.forEach((btn) => btn.classList.remove("selecionado"));
+      horario.classList.add("selecionado");
+      horarioSelecionado = horario.innerText.trim();
+      updateSteps();
     });
+  });
 
-    const result = await response.json();
+  // ── MÁSCARA TELEFONE ─────────────────────────────────────────────────────
+  document.getElementById("telefone").addEventListener("input", function () {
+    let v = this.value.replace(/\D/g, "").slice(0, 11);
+    if (v.length > 6)      v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    else if (v.length > 0) v = `(${v}`;
+    this.value = v;
+  });
 
-    if (!response.ok) {
-      console.error("Erro Supabase:", result);
-      return res.status(500).json({ erro: "Erro ao salvar agendamento." });
+  // ── BOTÃO WHATSAPP ───────────────────────────────────────────────────────
+  document.getElementById("whatsappBtn").addEventListener("click", () => {
+    const nome        = document.getElementById("nome").value;
+    const telefone    = document.getElementById("telefone").value;
+    const tipoVeiculo = document.getElementById("tipoVeiculo").value;
+    const nomeVeiculo = document.getElementById("nomeVeiculo").value;
+    const lavagem     = document.getElementById("lavagem").value;
+    const data        = dataInput.value;
+
+    const msg = `Olá! Gostaria de agendar:%0A%0A👤 *${nome || "—"}*%0A📞 ${telefone || "—"}%0A🚗 ${tipoVeiculo || "—"} — ${nomeVeiculo || "—"}%0A🧼 ${lavagem || "—"}%0A📅 ${data || "—"} às ${horarioSelecionado || "—"}`;
+    window.open(`https://wa.me/5531999999999?text=${msg}`, "_blank");
+  });
+
+  // ── ENVIAR FORMULÁRIO ────────────────────────────────────────────────────
+  formulario.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    if (!horarioSelecionado) {
+      showToast("Selecione um horário disponível.", "error");
+      return;
     }
 
-    console.log("Agendamento salvo. ID:", result[0].id);
-    res.status(201).json({ mensagem: "Agendamento realizado com sucesso!", id: result[0].id });
+    const nome        = document.getElementById("nome").value;
+    const telefone    = document.getElementById("telefone").value;
+    const tipoVeiculo = document.getElementById("tipoVeiculo").value;
+    const nomeVeiculo = document.getElementById("nomeVeiculo").value;
+    const lavagem     = document.getElementById("lavagem").value;
+    const data        = dataInput.value;
 
-  } catch (erro) {
-    console.error("Erro:", erro);
-    res.status(500).json({ erro: "Erro ao salvar no banco de dados." });
-  }
-});
+    btnSubmit.textContent = "Aguarde...";
+    btnSubmit.classList.add("loading");
 
-// ─── ROTA: HORÁRIOS OCUPADOS POR DATA ─────────────────────────────────────────
-app.get("/api/horarios-ocupados", async (req, res) => {
-  const { data } = req.query;
+    try {
+      const resposta = await fetch(`${API_URL}/agendamentos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, telefone, tipoVeiculo, nomeVeiculo, lavagem, data, horario: horarioSelecionado }),
+      });
 
-  if (!data) {
-    return res.status(400).json({ erro: "Data não informada." });
-  }
+      const resultado = await resposta.json();
+      if (!resposta.ok) throw new Error(resultado.erro || "Erro desconhecido");
 
-  try {
-    const response = await fetch(
-      `${SUPABASE_URL}/agendamentos?select=horario&data_agendamento=eq.${data}`,
-      { headers }
-    );
+      showToast("Agendamento confirmado com sucesso!");
+      formulario.reset();
+      horarioSelecionado = "";
+      horarios.forEach((btn) => {
+        btn.classList.remove("selecionado", "ocupado");
+        btn.disabled = false;
+      });
+      updateSteps();
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      return res.status(500).json({ erro: "Erro ao buscar horários." });
+    } catch (erro) {
+      showToast("Erro ao realizar agendamento. Tente novamente.", "error");
+      console.error(erro);
+    } finally {
+      btnSubmit.textContent = "Confirmar Agendamento";
+      btnSubmit.classList.remove("loading");
     }
+  });
 
-    const horariosOcupados = result.map((r) => r.horario.trim());
-    res.json(horariosOcupados);
-
-  } catch (erro) {
-    console.error("Erro:", erro);
-    res.status(500).json({ erro: "Erro ao buscar horários." });
-  }
-});
-
-// ─── ROTA: LISTAR AGENDAMENTOS ────────────────────────────────────────────────
-app.get("/api/agendamentos", async (req, res) => {
-  try {
-    const response = await fetch(
-      `${SUPABASE_URL}/agendamentos?order=data_agendamento.desc,horario.asc`,
-      { headers }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      return res.status(500).json({ erro: "Erro ao buscar agendamentos." });
-    }
-
-    res.json(result);
-
-  } catch (erro) {
-    console.error("Erro:", erro);
-    res.status(500).json({ erro: "Erro ao buscar agendamentos." });
-  }
-});
-
-// ─── INICIAR SERVIDOR ─────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
