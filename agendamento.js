@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000/api";
+const API_URL = "https://estetica-g9mn.onrender.com/api";
 
 document.addEventListener("DOMContentLoaded", () => {
 
