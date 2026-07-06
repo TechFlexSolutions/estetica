@@ -260,5 +260,20 @@
 
   <script src="js/main.js"></script>
 
+  <script>
+  const menuToggle = document.getElementById('menuToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+
+  menuToggle.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+  });
+
+  mobileMenuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+    });
+  });
+  </script>
 </body>
 </html>
