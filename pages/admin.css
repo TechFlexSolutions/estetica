@@ -18,6 +18,7 @@
       font-family: 'Barlow', sans-serif;
       min-height: 100vh;
     }
+    .login-logo, .painel-logo { cursor: pointer; }
 
     /* ── LOGIN ── */
     .login-screen {
